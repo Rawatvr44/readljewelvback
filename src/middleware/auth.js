@@ -1,13 +1,13 @@
-module.exports = function (req, res, next) {
-  const { id, password } = req.body;
+const jwt = require('jsonwebtoken');
 
-  // hard-coded credentials
-  const ADMIN_ID = "aftab";
-  const ADMIN_PASSWORD = "aftab123984";
-
-  if (id === ADMIN_ID && password === ADMIN_PASSWORD) {
-    return next();
+module.exports = function(req, res, next) {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.admin = decoded.admin;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: 'Token is not valid' });
   }
-
-  return res.status(401).json({ message: "Invalid admin credentials" });
 };
